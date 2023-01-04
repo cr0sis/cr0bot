@@ -8,15 +8,23 @@ from gpiozero import CPUTemperature
 import requests
 import json
 import ISS_Info
+import os
+from bs4 import BeautifulSoup
+headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Max-Age': '3600',
+    'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:52.0) Gecko/20100101 Firefox/52.0'
+    }
 
 def chat(sock, msg):
-    """
-    Send a chat message to the server.
-    Keyword arguments:
-    sock -- the socket over which to send the message
-    msg  -- the message to be sent
-    """
-    sock.send(("PRIVMSG {} :{}\r\n".format(config.CHAN, msg)).encode("UTF-8"))
+    if(type(msg) == str):
+        sock.send(("PRIVMSG {} :{}\r\n".format(config.CHAN, msg)).encode("UTF-8"))
+    elif(type(msg) == list):
+        for m in msg:
+            sock.send(("PRIVMSG {} :{}\r\n".format(config.CHAN, m)).encode("UTF-8"))
+    time.sleep(1 / config.RATE)
 
 def report_in(msg):
     return "Reporting *hic* in! [" + u'\U0001F40D' + "] https://cr0s.is/cr0bot.php"
@@ -34,6 +42,23 @@ def check_date(msg):
     d2 = today.strftime("%B %d, %Y")
     return d2 
 
+def moon(msg):
+    url = 'https://www.timeanddate.com/moon/phases/'
+    response = requests.get(url, headers)
+    soup = BeautifulSoup(response.text, 'html.parser')
+    percent = soup.select_one('#cur-moon-percent')
+    percent_value = float(percent.text.replace('%', ''))  # Remove the % symbol
+    percent_value = round(percent_value)
+    if percent_value < 5:
+       return u'\U0001F311' 
+    elif percent_value < 35:
+       return u'\U0001F312'
+    elif percent_value < 65:
+        return u'\U0001F313'
+    elif percent_value < 95:
+        return u'\U0001F314'
+    else:
+        return u'\U0001F315'
 
 def random_choice(msg):
     u = msg["user"]
@@ -77,6 +102,9 @@ def ISS(msg):
             return "Ocean info not found. Pos: " + str(latitude) + "," + str(longitude)
             print(str(e))
 
+def lenny(msg):
+    return (f"( ?° ?? ?°)")
+
 def dogs(msg):
     url = "https://dog.ceo/api/breeds/image/random"
     response = requests.get(url)
@@ -119,6 +147,23 @@ def bankhol(msg):
     else:
         return 'There are no more bank holidays this year.'
 
+def read_json_file(filename):
+    with open(filename, 'r') as f:
+        data = json.load(f)
+    return data
+
+def write_json_file(filename, data):
+    with open(filename, 'w') as f:
+        json.dump(data, f)
+
+def get_stats(msg):
+    data = read_json_file('dice_rolls.json')
+    total_rolls = data['total_rolls']
+    lowest_score = data['lowest_score']
+    lowest_score_user = data['lowest_score_user']
+    best_scores = data['best_scores']
+    message = f"Total rolls: {total_rolls} Best roll: {lowest_score_user} with {lowest_score}\n"
+    return message
 
 def roll_dice(msg):
     u=msg["user"]
@@ -133,6 +178,30 @@ def roll_dice(msg):
         dice_str=" ".join(dice)
         int_dice=[int(x[6:]) for x in dice] 
         if i==6:
+            newrecord=False
             sum_dice=sum(int_dice)
             dice_str="\x0301,15-".join(dice)
-            return dice_str + "\x03 " + u + "\x03 rolled: \x0307" + str(sum_dice)
+            
+            # Read data from JSON file
+            data = read_json_file('dice_rolls.json')
+
+            # Increment total number of rolls
+            data['total_rolls'] += 1
+
+            # Update lowest score and user with lowest score
+            if sum_dice < data['lowest_score']:
+                data['lowest_score'] = sum_dice
+                data['lowest_score_user'] = u
+                newrecord=True
+            # Update best score for current user
+            if u not in data['best_scores'] or sum_dice < data['best_scores'][u]:
+                data['best_scores'][u] = sum_dice
+
+            # Write updated data to JSON file
+            write_json_file('dice_rolls.json', data)
+            dice_list = [dice_str + "\x03 " + u + "\x03 rolled: \x0307" + str(sum_dice)]
+            if not newrecord:
+                return dice_list
+            else:
+                dice_list.append("omg " + u + " broke the record!!")
+                return dice_list
