@@ -57,7 +57,6 @@ def bot_loop():
                     if re.search(pattern[0], message["message"]):
                         utility.chat(s, pattern[1](message))
                         break
-        time.sleep(1 / config.RATE)
 if __name__ == "__main__":
     try:
         bot_loop()
