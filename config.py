@@ -19,4 +19,7 @@ COMMANDS = [
     [r'^~fox$', utility.fox],
     [r'^~duck$', utility.duck],
     [r'^~bankhol$', utility.bankhol],
+    [r'^~stats$', utility.get_stats],
+    [r'^~moon$', utility.moon],
+    [r'^~lenny$', utility.lenny],
 ]
