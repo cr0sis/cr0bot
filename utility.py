@@ -26,6 +26,7 @@ def chat(sock, msg):
             sock.send(("PRIVMSG {} :{}\r\n".format(config.CHAN, m)).encode("UTF-8"))
     time.sleep(1 / config.RATE)
 
+
 def report_in(msg):
     return "Reporting *hic* in! [" + u'\U0001F40D' + "] https://cr0s.is/cr0bot.php"
 
@@ -41,6 +42,7 @@ def check_date(msg):
     today = date.today()
     d2 = today.strftime("%B %d, %Y")
     return d2 
+
 
 def moon(msg):
     url = 'https://www.timeanddate.com/moon/phases/'
@@ -76,7 +78,6 @@ def random_choice(msg):
         print(str(e))
         return "Not enough parameters: !random word | word"
 
-
 def jumble(msg):
     word = str("GINGER")
     word = list(word)  # Convert the word to a list of characters
@@ -103,7 +104,7 @@ def ISS(msg):
             print(str(e))
 
 def lenny(msg):
-    return (f"( ?° ?? ?°)")
+    return (f"( ͡° ͜ʖ ͡°)")
 
 def dogs(msg):
     url = "https://dog.ceo/api/breeds/image/random"
@@ -147,6 +148,24 @@ def bankhol(msg):
     else:
         return 'There are no more bank holidays this year.'
 
+'''
+def roll_dice(msg):
+    u=msg["user"]
+    m=msg["message"]
+    dice=[] # Initialize an empty list to store the dice rolls
+    for i in range(7):
+        roll=random.randint(1, 6)
+        if roll==1:
+            dice.append("\x0313,15" + str(roll))
+        else:
+            dice.append("\x0301,15" + str(roll)) 
+        dice_str=" ".join(dice)
+        int_dice=[int(x[6:]) for x in dice] 
+        if i==6:
+            sum_dice=sum(int_dice)
+            dice_str="\x0301,15-".join(dice)
+            return dice_str + "\x03 " + u + "\x03 rolled: \x0307" + str(sum_dice)
+'''
 def read_json_file(filename):
     with open(filename, 'r') as f:
         data = json.load(f)
@@ -164,6 +183,7 @@ def get_stats(msg):
     best_scores = data['best_scores']
     message = f"Total rolls: {total_rolls} Best roll: {lowest_score_user} with {lowest_score}\n"
     return message
+
 
 def roll_dice(msg):
     u=msg["user"]
